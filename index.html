@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Langkah Pertama — Komik Interaktif Konseling Karier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1f2430; --paper:#fbf8f3; --accent:#ff6b4a; --teal:#2ec4b6; --sun:#ffd166; --muted:#5b6472;
+  --radius:14px; --shadow:4px 4px 0 var(--ink);
+  --head:'Fredoka',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --body:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--body);color:var(--ink);line-height:1.5;min-height:100vh;
+  background:var(--paper);
+  background-image:radial-gradient(rgba(31,36,48,.07) 1px,transparent 1.3px);
+  background-size:16px 16px;
+}
+.hide{display:none!important}
+button{font-family:inherit;color:inherit}
+
+/* ===== Top bar ===== */
+.bar{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:3px solid var(--ink);padding:10px 16px}
+.bar-in{max-width:880px;margin:0 auto;display:flex;align-items:center;gap:14px}
+.brand{font-family:var(--head);font-weight:700;font-size:18px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.brand i{width:14px;height:14px;border-radius:50%;background:var(--accent);border:3px solid var(--ink);display:inline-block}
+.prog{flex:1;min-width:0;display:none}
+.prog.on{display:block}
+.prog small{display:block;font-size:12px;color:var(--muted);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.segs{display:flex;gap:4px;margin-top:3px}
+.segs span{flex:1;height:8px;border-radius:4px;background:#e8e3da;border:2px solid var(--ink);transition:background .3s}
+.segs span.on{background:var(--teal)}
+.ghost{font-weight:800;font-size:13px;background:none;border:2px solid var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap}
+.ghost:hover{background:var(--sun)}
+
+/* ===== Layout ===== */
+.wrap{max-width:880px;margin:0 auto;padding:22px 16px 130px}
+#stage.enter{animation:fade .4s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes grow{from{width:0}}
+
+/* ===== Buttons ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:var(--ink);font-family:var(--head);font-weight:700;font-size:18px;border:3px solid var(--ink);border-radius:999px;padding:11px 26px;box-shadow:var(--shadow);cursor:pointer;transition:transform .12s,box-shadow .12s}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.btn.alt{background:#fff}
+.btn.full{width:100%}
+
+/* ===== Intro ===== */
+.hero{background:#fff;border:3px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.hero-body{padding:26px 22px 28px;text-align:center}
+.tag{display:inline-block;background:var(--sun);border:2px solid var(--ink);border-radius:999px;padding:3px 12px;font-weight:800;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase}
+h1{font-family:var(--head);font-size:clamp(34px,8vw,50px);line-height:1.08;margin:14px 0 8px}
+.lead{color:var(--muted);max-width:46ch;margin:0 auto 22px}
+form{max-width:380px;margin:0 auto;text-align:left}
+label{font-weight:800;font-size:14px}
+input{width:100%;margin-top:6px;padding:13px 14px;font:700 17px var(--body);color:var(--ink);border:3px solid var(--ink);border-radius:12px;background:var(--paper);outline:none}
+input:focus{box-shadow:0 0 0 4px rgba(255,107,74,.35)}
+.err{color:#b32d14;font-weight:800;font-size:13px;min-height:22px;margin:4px 0 6px}
+.fine{font-size:12.5px;color:var(--muted);text-align:center;margin-top:16px}
+
+/* ===== Comic panels ===== */
+.chap{display:flex;align-items:center;gap:10px;margin:2px 0 18px}
+.chap .no{background:var(--accent);border:3px solid var(--ink);border-radius:10px;padding:1px 10px;font-family:var(--head);font-weight:700;white-space:nowrap}
+.chap h2{font-family:var(--head);font-size:clamp(21px,5vw,28px);line-height:1.15}
+.page{display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:720px){
+  .page{grid-template-columns:1fr 1fr;gap:22px}
+  .panel:last-child:nth-child(odd){grid-column:1/-1}
+}
+.panel{display:none;background:#fff;border:3px solid var(--ink);border-radius:12px;box-shadow:var(--shadow);scroll-margin-bottom:120px}
+.panel.show{display:block;animation:pop .35s ease both}
+.scene{position:relative;height:184px;overflow:hidden;border-radius:9px 9px 0 0;border-bottom:3px solid var(--ink)}
+.scene .bg{position:absolute;inset:0;width:100%;height:100%}
+.chr{position:absolute;bottom:0;height:152px;transform:translateX(-50%);transition:transform .25s,opacity .25s}
+.chr svg{height:100%;width:auto;display:block}
+.chr.dim{opacity:.7}
+.chr.talk{transform:translateX(-50%) translateY(-5px)}
+.said{position:relative;z-index:2;margin:-24px 12px 12px;padding:10px 14px 12px;background:#fff;border:3px solid var(--ink);border-radius:16px;font-weight:700;font-size:15.5px}
+.said::before{content:'';position:absolute;top:-10px;left:var(--tx,50%);width:16px;height:16px;background:#fff;border-left:3px solid var(--ink);border-top:3px solid var(--ink);transform:translateX(-50%) rotate(45deg);border-radius:3px 0 0 0}
+.said .who{display:block;font-family:var(--head);font-weight:600;font-size:13px;color:#c2410c;margin-bottom:1px}
+.said.thought{border-style:dashed;border-radius:24px;font-style:italic;font-weight:600}
+.said.cap{background:var(--sun);border-radius:6px;margin-top:-14px;font-weight:700}
+.said.cap::before{display:none}
+
+/* ===== Dock (next) ===== */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:15;display:flex;justify-content:center;pointer-events:none;padding:30px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--paper) 55%)}
+.dock .btn{pointer-events:auto}
+
+/* ===== Choices ===== */
+.ask{margin-top:28px;scroll-margin-bottom:30px;animation:pop .4s ease both}
+.ask h3{font-family:var(--head);font-size:21px;margin-bottom:12px}
+.choices{display:grid;gap:14px}
+@media(min-width:720px){.choices{grid-template-columns:1fr 1fr}}
+.choice{display:flex;gap:12px;align-items:flex-start;text-align:left;background:#fff;border:3px solid var(--ink);border-radius:14px;box-shadow:var(--shadow);padding:16px;font:800 16px/1.4 var(--body);cursor:pointer;transition:transform .12s,box-shadow .12s,background .12s,opacity .2s}
+.choice:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink);background:#fffaf0}
+.choice:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.choice .k{flex:none;width:30px;height:30px;border-radius:50%;background:var(--sun);border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--head);font-weight:700}
+.choices.lock .choice{pointer-events:none}
+.choices.lock .choice:not(.picked){opacity:.4}
+.choice.picked{background:var(--teal)}
+
+/* ===== Result ===== */
+.result{margin-top:28px;background:#fff;border:3px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px 20px;animation:pop .45s ease both;scroll-margin-bottom:30px}
+.rtag{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:2px 12px;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.tone-good{background:var(--teal)}.tone-mid{background:var(--sun)}.tone-low{background:#ffb4a3}
+.result h3{font-family:var(--head);font-size:clamp(26px,6vw,34px);line-height:1.15;margin:10px 0 4px}
+.blk{margin-top:20px}
+.blk h4{font-family:var(--head);font-size:16px;margin-bottom:6px}
+.blk p{color:#2f3644}
+.blk ol{padding-left:20px;display:grid;gap:8px;font-size:14.5px}
+.blk ol b{font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.meter{display:grid;grid-template-columns:118px 1fr 44px;gap:10px;align-items:center;margin:8px 0;font-weight:800;font-size:14px}
+.track{height:14px;background:#f0ebe2;border:2.5px solid var(--ink);border-radius:999px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--accent);animation:grow .9s .2s ease both}
+.meter:nth-of-type(2) .track i{background:var(--teal)}
+.meter:nth-of-type(3) .track i{background:var(--sun)}
+.acts{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:#fff;font-weight:800;font-size:14px;padding:9px 18px;border-radius:999px;transition:.3s;z-index:40;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%)}
+
+@media(max-width:480px){
+  .meter{grid-template-columns:96px 1fr 40px;gap:8px;font-size:13px}
+  .scene{height:170px}
+  .chr{height:140px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-in">
+    <div class="brand"><i></i>Langkah Pertama</div>
+    <div class="prog" id="prog">
+      <small id="progtxt"></small>
+      <div class="segs" id="segs"><span></span><span></span><span></span></div>
+    </div>
+    <button class="ghost hide" id="restart" type="button">Ulang</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="stage" aria-live="polite"></div>
+</main>
+
+<div class="dock hide" id="dock"><button class="btn" id="next" type="button">Lanjut ▸</button></div>
+<div class="toast" id="toast" role="status"></div>
+
+<noscript><p style="padding:20px">Aplikasi ini membutuhkan JavaScript.</p></noscript>
+
+<script>
+/* =====================================================
+   DATA CERITA — ubah teks, pilihan, dan skor di sini
+   Skor tiap pilihan (p): a = asertivitas, k = kolaborasi,
+   r = tanggung jawab, masing-masing 0–2.
+   Gunakan {nama} untuk menyisipkan nama pengguna.
+   ===================================================== */
+const STORY = {
+  s1:{ch:1,title:'Tugas Dadakan',panels:[
+    {s:'kantor',c:[['you','neutral']],n:'Hari ke-30 sebagai staf junior di PT Nusantara Kreatif. Pagi ini terasa biasa saja… sampai Bu Sinta menghampiri mejamu.'},
+    {s:'kantor',c:[['you','neutral'],['sinta','neutral']],w:'sinta',t:'{nama}, klien baru minta laporan analisis selesai besok pagi. Kamu yang pegang, ya.'},
+    {s:'kantor',c:[['you','stress'],['sinta','neutral']],w:'you',k:'thought',t:'Besok pagi? Padahal laporan mingguan juga jatuh tempo malam ini…'},
+    {s:'kantor',c:[['you','worry'],['sinta','neutral']],n:'Bu Sinta menunggu jawabanmu. Apa yang kamu lakukan?'}
+  ],q:'Bagaimana kamu merespons?',choices:[
+    {t:'“Baik, Bu. Saya kerjakan semuanya.”',to:'s2a',p:{a:0,k:0,r:1}},
+    {t:'“Bu, boleh kita tentukan dulu mana yang jadi prioritas?”',to:'s2b',p:{a:2,k:1,r:1}}
+  ]},
+
+  s2a:{ch:2,title:'Lembur Tanpa Cerita',panels:[
+    {s:'malam',c:[['you','stress']],n:'Tiga hari berturut-turut kamu pulang lewat tengah malam. Kopi ketiga hari ini sudah dingin di samping laptop.'},
+    {s:'pantry',c:[['you','stress'],['dinda','worry']],w:'dinda',t:'{nama}, matamu merah banget. Kamu nggak apa-apa?'},
+    {s:'pantry',c:[['you','stress'],['dinda','worry']],w:'you',k:'thought',t:'Kalau cerita, takut dibilang tidak sanggup. Tapi kalau terus begini…'}
+  ],q:'Bagaimana kamu menjawab Dinda?',choices:[
+    {t:'“Aku baik-baik aja, cuma kurang tidur.”',to:'s3a',p:{a:0,k:0,r:1}},
+    {t:'“Sebenarnya aku kewalahan. Boleh minta saran?”',to:'s3b',p:{a:2,k:2,r:1}}
+  ]},
+
+  s2b:{ch:2,title:'Menentukan Prioritas',panels:[
+    {s:'ruang',c:[['you','neutral'],['sinta','neutral']],w:'you',t:'Bu, saya siap mengerjakan laporan klien. Tapi laporan mingguan juga jatuh tempo malam ini. Boleh kita tentukan mana yang lebih prioritas?'},
+    {s:'ruang',c:[['you','neutral'],['sinta','smile']],w:'sinta',t:'Bagus kamu bilang sekarang, bukan di menit terakhir. Laporan klien lebih mendesak; laporan mingguan boleh mundur sampai lusa.'},
+    {s:'kantor',c:[['you','neutral'],['raka','smile']],w:'raka',t:'Kalau mau, aku punya template analisis yang biasa kupakai. Lumayan menghemat waktu, jadi kamu nggak mulai dari nol.'},
+    {s:'kantor',c:[['you','worry'],['raka','smile']],n:'Kamu lega, tapi ada sedikit rasa gengsi untuk menerima bantuan.'}
+  ],q:'Bagaimana kamu menanggapi tawaran Raka?',choices:[
+    {t:'“Mau, Kak. Sekalian saya belajar caranya.”',to:'e1',p:{a:1,k:2,r:1}},
+    {t:'“Makasih, Kak. Saya coba sendiri dulu, ya.”',to:'s3c',p:{a:1,k:0,r:2}}
+  ]},
+
+  s3a:{ch:3,title:'Angka yang Salah',panels:[
+    {s:'kantor',c:[['you','stress']],n:'Dua minggu kemudian. Laporan klien terkirim, tetapi ada angka yang keliru di tabel terakhir.'},
+    {s:'ruang',c:[['you','worry'],['sinta','angry']],w:'sinta',t:'{nama}, klien menemukan angka yang salah di halaman 4. Apa yang terjadi?'},
+    {s:'ruang',c:[['you','worry'],['sinta','neutral']],w:'you',k:'thought',t:'Aku terlalu lelah untuk memeriksanya ulang…'}
+  ],q:'Bagaimana kamu menanggapi Bu Sinta?',choices:[
+    {t:'“Ini karena tenggatnya terlalu mepet, Bu.”',to:'e3',p:{a:1,k:0,r:0}},
+    {t:'“Itu kesalahan saya, Bu. Saya perbaiki dan kirim revisi sebelum makan siang.”',to:'e4',p:{a:1,k:1,r:2}}
+  ]},
+
+  s3b:{ch:3,title:'Obrolan di Pantry',panels:[
+    {s:'pantry',c:[['you','worry'],['dinda','smile']],w:'dinda',t:'Kewalahan di bulan pertama itu wajar. Tapi Bu Sinta nggak akan tahu kalau kamu diam saja.'},
+    {s:'pantry',c:[['you','worry'],['dinda','neutral']],w:'dinda',t:'Coba bicara langsung. Bawa daftar tugasmu supaya jelas, bukan sekadar mengeluh.'},
+    {s:'pantry',c:[['you','worry'],['dinda','neutral']],w:'you',t:'Aku takut dikira tidak mampu…'},
+    {s:'pantry',c:[['you','neutral'],['dinda','smile']],w:'dinda',t:'Meminta penyesuaian itu bukan tanda lemah. Itu tanda kamu paham batas dan peduli pada hasil kerja.'}
+  ],q:'Apa langkahmu berikutnya?',choices:[
+    {t:'“Siapkan daftar tugas dan minta waktu bicara dengan Bu Sinta.”',to:'e5',p:{a:2,k:1,r:2}},
+    {t:'“Tulis keluhan panjang di grup chat kantor.”',to:'e6',p:{a:1,k:0,r:0}}
+  ]},
+
+  s3c:{ch:3,title:'Titik Mentok',panels:[
+    {s:'malam',c:[['you','stress']],n:'Pukul 21.00. Kamu buntu di bagian analisis data. Sudah satu jam tanpa kemajuan berarti.'},
+    {s:'malam',c:[['you','stress']],w:'you',k:'thought',t:'Kata Raka boleh dikabari kalau mentok… tapi ini sudah malam. Mengganggu nggak, ya?'}
+  ],q:'Apa yang kamu lakukan?',choices:[
+    {t:'“Kirim pesan singkat ke Raka, seperti yang ia tawarkan.”',to:'e1',p:{a:2,k:2,r:1}},
+    {t:'“Lanjut sendiri sampai pagi. Pasti bisa.”',to:'e2',p:{a:0,k:0,r:1}}
+  ]},
+
+  /* ---------- AKHIR CERITA ---------- */
+  e1:{ch:4,panels:[
+    {s:'kantor',c:[['you','smile'],['raka','smile']],n:'Dengan template dari Raka, analisis selesai tepat waktu — dan kamu belajar cara baru yang tidak ada di bangku kuliah.'},
+    {s:'ruang',c:[['you','smile'],['sinta','smile']],w:'sinta',t:'Analisisnya rapi dan tepat waktu. Terima kasih, {nama}.'}
+  ],end:{tone:'good',label:'Sangat baik',icon:'🤝',title:'Kolaborator Tangguh',
+    refleksi:'Kamu memadukan inisiatif dengan kemauan belajar dari orang lain. Dalam konseling karier, meminta bantuan pada saat yang tepat (adaptive help-seeking) justru memperkuat kompetensi, bukan melemahkannya.',
+    saran:'Pertahankan kebiasaan menyampaikan hambatan lebih awal dan membangun relasi dengan rekan yang bisa menjadi mentor.'}},
+
+  e2:{ch:4,panels:[
+    {s:'malam',c:[['you','stress']],n:'Laporan selesai menjelang subuh. Hasilnya lumayan, tetapi badanmu terasa berat dan sulit fokus.'},
+    {s:'kantor',c:[['you','worry'],['dinda','worry']],w:'dinda',t:'{nama}, kamu kelihatan pucat. Semalam begadang lagi?'}
+  ],end:{tone:'mid',label:'Perlu diasah',icon:'🌙',title:'Pejuang Sunyi',
+    refleksi:'Kemandirian adalah kekuatan, tetapi tanpa batas ia bisa berujung pada kelelahan kerja (burnout). Tekadmu kuat; langkah berikutnya adalah mengenali kapan sebuah masalah perlu dibagi.',
+    saran:'Tetapkan “titik mentok” sebelum mulai, misalnya 60 menit tanpa kemajuan berarti saatnya meminta masukan.'}},
+
+  e3:{ch:4,panels:[
+    {s:'ruang',c:[['you','worry'],['sinta','neutral']],n:'Bu Sinta terdiam sejenak. Alasanmu mungkin benar, tetapi percakapan berakhir tanpa solusi.'},
+    {s:'ruang',c:[['you','worry'],['sinta','neutral']],w:'sinta',t:'Saya mengerti tenggatnya ketat. Tapi yang saya perlukan sekarang adalah langkah perbaikan.'}
+  ],end:{tone:'low',label:'Perlu refleksi',icon:'🪞',title:'Terjebak Alasan',
+    refleksi:'Menjelaskan konteks itu wajar, tetapi menempatkan faktor luar sebagai jawaban utama bisa terbaca sebagai menghindari tanggung jawab. Atasan biasanya menilai bagaimana kamu merespons masalah, bukan hanya penyebabnya.',
+    saran:'Latih urutan: akui, jelaskan singkat, lalu tawarkan solusi. Dan bicarakan beban kerja sebelum masalah terjadi, bukan sesudahnya.'}},
+
+  e4:{ch:4,panels:[
+    {s:'kantor',c:[['you','neutral']],n:'Revisi terkirim sebelum makan siang, dan klien menerimanya dengan baik.'},
+    {s:'ruang',c:[['you','neutral'],['sinta','smile']],w:'sinta',t:'Terima kasih sudah bertanggung jawab. Lain kali, kabari lebih awal kalau bebanmu terlalu berat, ya.'}
+  ],end:{tone:'good',label:'Baik',icon:'🌱',title:'Belajar dari Kesalahan',
+    refleksi:'Kamu menunjukkan akuntabilitas: mengakui kesalahan dan langsung bergerak memperbaiki. Akar masalahnya, yaitu memendam beban sendirian, masih perlu dibenahi agar kesalahan serupa tidak terulang.',
+    saran:'Berani bersuara lebih awal. Asertivitas melindungi kualitas kerjamu sekaligus kesehatanmu.'}},
+
+  e5:{ch:4,panels:[
+    {s:'ruang',c:[['you','neutral'],['sinta','neutral']],n:'Dengan daftar tugas di tangan, kamu berbicara tenang dengan Bu Sinta.'},
+    {s:'ruang',c:[['you','smile'],['sinta','smile']],w:'sinta',t:'Terima kasih sudah terbuka. Kita atur ulang bebanmu, dan kita evaluasi dua minggu sekali.'}
+  ],end:{tone:'good',label:'Sangat baik',icon:'🗣️',title:'Komunikator Asertif',
+    refleksi:'Kamu menyampaikan kebutuhan dengan jelas, berbasis data, dan tetap menghormati atasan. Inilah komunikasi asertif: tegas tanpa agresif, terbuka tanpa menyalahkan.',
+    saran:'Terapkan juga saat bernegosiasi hal lain seperti tenggat, peran, atau kesempatan pengembangan diri.'}},
+
+  e6:{ch:4,panels:[
+    {s:'kantor',c:[['you','worry']],n:'Pesanmu langsung dibaca banyak orang. Beberapa rekan membalas dengan iba, tetapi suasana jadi canggung.'},
+    {s:'ruang',c:[['you','worry'],['sinta','neutral']],w:'sinta',t:'{nama}, bisa ke ruangan saya sebentar? Lain kali, sampaikan langsung ke saya, ya.'}
+  ],end:{tone:'low',label:'Perlu refleksi',icon:'💬',title:'Curhat di Tempat yang Salah',
+    refleksi:'Kebutuhanmu valid, tetapi saluran yang dipilih kurang tepat. Mengeluh di ruang publik dapat memengaruhi citra profesional, sementara masalah sebenarnya belum sampai ke pihak yang bisa menyelesaikannya.',
+    saran:'Pilih saluran yang tepat: bicara langsung atau 1-on-1, bawa data, dan tawarkan usulan solusi.'}}
+};
+
+/* =====================================================
+   KARAKTER & LATAR (SVG minimalis)
+   ===================================================== */
+const IK = '#1f2430';
+const CHARS = {
+  you:  {skin:'#f2c9a0',hair:'#2b2b3a',top:'#2ec4b6',style:'short'},
+  sinta:{skin:'#e8b88a',hair:'#3b2f2f',top:'#7b5ea7',style:'bun'},
+  dinda:{skin:'#f5d0b0',hair:'#f4a261',top:'#e76f51',style:'hijab'},
+  raka: {skin:'#d9a574',hair:'#1f1f1f',top:'#4a7bd0',style:'short'}
+};
+const NAMES = {sinta:'Bu Sinta',dinda:'Dinda',raka:'Raka'};
+const MOODS = {
+  neutral:{b:'M43 51H55M65 51H77',m:'M52 75H68'},
+  smile:  {b:'M43 51Q49 48 55 51M65 51Q71 48 77 51',m:'M49 71Q60 84 71 71'},
+  worry:  {b:'M43 53L55 49M77 53L65 49',m:'M52 78Q60 71 68 78'},
+  stress: {b:'M43 53L55 49M77 53L65 49',m:'M49 76Q54 72 59 76T69 76'},
+  angry:  {b:'M43 49L55 54M77 49L65 54',m:'M52 77H68'}
+};
+const SCENES = {
+  kantor:`<rect width="400" height="200" fill="#eaf0e7"/><rect y="148" width="400" height="52" fill="#cfdcc9"/><path d="M0 148H400" stroke="${IK}" stroke-width="3"/><rect x="36" y="24" width="112" height="84" rx="4" fill="#c4e8f7" stroke="${IK}" stroke-width="3"/><path d="M92 24V108M36 66H148" stroke="${IK}" stroke-width="3"/><rect x="252" y="38" width="108" height="64" rx="4" fill="#fff" stroke="${IK}" stroke-width="3"/><path d="M266 86l22-20 18 14 24-28 18 20" fill="none" stroke="#ff6b4a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`,
+  malam:`<rect width="400" height="200" fill="#1f2a44"/><rect y="150" width="400" height="50" fill="#141c30"/><path d="M0 150H400" stroke="#0b1020" stroke-width="3"/><rect x="40" y="22" width="120" height="86" rx="4" fill="#2b3b66" stroke="#0b1020" stroke-width="3"/><circle cx="120" cy="50" r="14" fill="#ffd166"/><circle cx="66" cy="44" r="2" fill="#fff"/><circle cx="84" cy="80" r="2" fill="#fff"/><circle cx="140" cy="86" r="2" fill="#fff"/><rect x="262" y="98" width="86" height="52" rx="4" fill="#bfe6f5" stroke="#0b1020" stroke-width="3"/><rect x="250" y="148" width="110" height="8" rx="3" fill="#3a3f55"/>`,
+  pantry:`<rect width="400" height="200" fill="#fbe8d4"/><rect x="24" y="18" width="150" height="56" rx="4" fill="#f1cfa6" stroke="${IK}" stroke-width="3"/><path d="M99 18V74" stroke="${IK}" stroke-width="3"/><rect y="138" width="400" height="62" fill="#e3b98a"/><path d="M0 138H400" stroke="${IK}" stroke-width="3"/><rect x="300" y="98" width="60" height="40" rx="4" fill="#4a4a5a" stroke="${IK}" stroke-width="3"/><circle cx="330" cy="118" r="9" fill="#ff6b4a" stroke="${IK}" stroke-width="2.5"/><rect x="236" y="118" width="22" height="20" rx="3" fill="#fff" stroke="${IK}" stroke-width="3"/>`,
+  ruang:`<rect width="400" height="200" fill="#e7eaf6"/><rect x="50" y="22" width="160" height="88" rx="4" fill="#fff" stroke="${IK}" stroke-width="3"/><path d="M68 90l24-26 20 16 26-36 30 26" fill="none" stroke="#2ec4b6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="262" y="38" width="100" height="64" rx="4" fill="#c4e8f7" stroke="${IK}" stroke-width="3"/><rect y="142" width="400" height="58" fill="#d6b88f"/><path d="M0 142H400" stroke="${IK}" stroke-width="3"/>`
+};
+
+function avatar(id, mood){
+  const c = CHARS[id], k = MOODS[mood] || MOODS.neutral;
+  const S = `stroke="${IK}" stroke-width="3" stroke-linejoin="round"`;
+  const hij = c.style === 'hijab';
+  let g = `<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">`;
+  if(!hij) g += `<rect x="52" y="80" width="16" height="22" fill="${c.skin}" ${S}/>`;
+  g += `<path d="M10 150Q10 100 60 98Q110 100 110 150Z" fill="${c.top}" ${S}/>`;
+  if(c.style === 'bun' || id === 'raka') g += `<path d="M47 99L60 122L73 99Z" fill="#fff" ${S}/>`;
+  if(hij){
+    g += `<path d="M24 62Q20 18 60 18Q100 18 96 62Q104 112 92 150H28Q16 112 24 62Z" fill="${c.hair}" ${S}/>`;
+    g += `<ellipse cx="60" cy="62" rx="23" ry="26" fill="${c.skin}" ${S}/>`;
+  } else {
+    if(c.style === 'bun') g += `<circle cx="60" cy="19" r="11" fill="${c.hair}" ${S}/>`;
+    g += `<circle cx="60" cy="58" r="28" fill="${c.skin}" ${S}/>`;
+    g += `<path d="M31 56Q27 26 60 26Q93 26 89 56Q82 41 60 41Q38 41 31 56Z" fill="${c.hair}" ${S}/>`;
+  }
+  g += `<circle cx="42" cy="70" r="5" fill="#ff8a7a" opacity=".35"/><circle cx="78" cy="70" r="5" fill="#ff8a7a" opacity=".35"/>`;
+  g += `<circle cx="49" cy="61" r="2.8" fill="${IK}"/><circle cx="71" cy="61" r="2.8" fill="${IK}"/>`;
+  if(id === 'raka') g += `<circle cx="49" cy="61" r="8.5" fill="none" stroke="${IK}" stroke-width="2.5"/><circle cx="71" cy="61" r="8.5" fill="none" stroke="${IK}" stroke-width="2.5"/><path d="M57.5 61H62.5" stroke="${IK}" stroke-width="2.5"/>`;
+  g += `<path d="${k.b}" fill="none" stroke="${IK}" stroke-width="3" stroke-linecap="round"/>`;
+  g += `<path d="${k.m}" fill="none" stroke="${IK}" stroke-width="3" stroke-linecap="round"/>`;
+  if(mood === 'stress') g += `<path d="M96 36q7 10 0 15q-7-5 0-15z" fill="#7fd3f7" stroke="${IK}" stroke-width="2"/>`;
+  return g + `</svg>`;
+}
+
+/* =====================================================
+   STATE & UTIL
+   ===================================================== */
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const state = {name:'', path:[], score:{a:0,k:0,r:0}, picks:0};
+const stage = $('#stage'), dock = $('#dock'), nextBtn = $('#next');
+let node = null, panelEls = [], idx = 0, busy = false;
+
+const fmt = t => esc(t).replace(/\{nama\}/g, esc(state.name));
+const nameOf = (id, thought) => id === 'you' ? state.name + (thought ? ' (dalam hati)' : '') : (NAMES[id] || '');
+const sceneSVG = key => `<svg class="bg" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${SCENES[key] || ''}</svg>`;
+const posOf = (n, i) => n === 1 ? 50 : (i === 0 ? 27 : 73);
+
+function charsHTML(list, speaker){
+  return list.map(([id, mood], i) => {
+    const cls = 'chr' + (speaker ? (id === speaker ? ' talk' : ' dim') : '');
+    return `<div class="${cls}" style="left:${posOf(list.length, i)}%">${avatar(id, mood)}</div>`;
+  }).join('');
+}
+
+function panelHTML(p){
+  const list = p.c || [];
+  let said = '';
+  if(p.n){
+    said = `<div class="said cap">${fmt(p.n)}</div>`;
+  } else if(p.t){
+    const i = Math.max(0, list.findIndex(x => x[0] === p.w));
+    const th = p.k === 'thought';
+    said = `<div class="said${th ? ' thought' : ''}" style="--tx:${posOf(list.length, i)}%"><b class="who">${esc(nameOf(p.w, th))}</b>${fmt(p.t)}</div>`;
+  }
+  return `<article class="panel"><div class="scene">${sceneSVG(p.s)}${charsHTML(list, p.n ? null : p.w)}</div>${said}</article>`;
+}
+
+function enter(){ stage.classList.remove('enter'); void stage.offsetWidth; stage.classList.add('enter'); }
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 1800); }
+function scrollTo(el){ setTimeout(() => el.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'nearest'}), 60); }
+
+function setBar(ch, title){
+  $('#prog').classList.add('on');
+  $('#progtxt').textContent = ch > 3 ? 'Akhir cerita' : `Bab ${ch} dari 3 · ${title}`;
+  document.querySelectorAll('#segs span').forEach((s, i) => s.classList.toggle('on', i < Math.min(ch, 3)));
+}
+
+/* =====================================================
+   HALAMAN AWAL
+   ===================================================== */
+function showIntro(){
+  state.path = []; state.score = {a:0,k:0,r:0}; state.picks = 0; busy = false;
+  dock.classList.add('hide');
+  $('#prog').classList.remove('on');
+  $('#restart').classList.add('hide');
+  stage.innerHTML = `
+    <section class="hero">
+      <div class="scene" style="border-radius:0">${sceneSVG('kantor')}${charsHTML([['you','smile'],['dinda','smile']], null)}</div>
+      <div class="hero-body">
+        <span class="tag">Komik interaktif · Bimbingan Konseling Dunia Kerja</span>
+        <h1>Langkah Pertama</h1>
+        <p class="lead">Kamu baru sebulan bekerja. Setiap pilihanmu akan menentukan bagaimana ceritanya berjalan.</p>
+        <form id="f" novalidate>
+          <label for="nm">Siapa namamu?</label>
+          <input id="nm" type="text" maxlength="20" autocomplete="given-name" placeholder="Tulis namamu di sini">
+          <div class="err" id="err" role="alert"></div>
+          <button class="btn full" type="submit">Mulai cerita ▸</button>
+        </form>
+        <p class="fine">Cerita ini fiktif dan berdurasi sekitar 3–5 menit. Pilih respons yang paling mendekati kecenderunganmu; tidak ada jawaban benar atau salah mutlak.</p>
+      </div>
+    </section>`;
+  enter();
+  const input = $('#nm'); input.value = state.name;
+  $('#f').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = input.value.replace(/\s+/g, ' ').trim();
+    if(v.length < 2 || v.length > 20){ $('#err').textContent = 'Tulis nama 2–20 karakter ya.'; input.focus(); return; }
+    state.name = v;
+    go('s1');
+  });
+  window.scrollTo({top:0});
+}
+
+/* =====================================================
+   ALUR CERITA
+   ===================================================== */
+function go(id){
+  node = STORY[id]; idx = 0; busy = false;
+  const isEnd = !!node.end;
+  setBar(node.ch, node.title);
+  $('#restart').classList.remove('hide');
+  stage.innerHTML = `
+    <div class="chap"><span class="no">${isEnd ? 'Akhir' : 'Bab ' + node.ch}</span><h2>${isEnd ? 'Akhir Cerita' : esc(node.title)}</h2></div>
+    <div class="page">${node.panels.map(panelHTML).join('')}</div>`;
+  panelEls = [...stage.querySelectorAll('.panel')];
+  dock.classList.remove('hide');
+  window.scrollTo({top:0});
+  enter();
+  next();
+}
+
+function next(){
+  if(idx >= panelEls.length) return;
+  const el = panelEls[idx++];
+  el.classList.add('show');
+  if(idx > 1) scrollTo(el);
+  if(idx >= panelEls.length){
+    dock.classList.add('hide');
+    node.end ? renderEnding() : renderChoices();
+  }
+}
+
+function renderChoices(){
+  const s = document.createElement('section');
+  s.className = 'ask';
+  s.innerHTML = `<h3>${esc(node.q)}</h3><div class="choices">${
+    node.choices.map((c, i) => `<button class="choice" type="button" data-i="${i}"><span class="k">${'AB'[i]}</span><span>${fmt(c.t)}</span></button>`).join('')
+  }</div>`;
+  stage.appendChild(s);
+  s.addEventListener('click', e => {
+    const b = e.target.closest('.choice');
+    if(b) choose(+b.dataset.i, b, s);
+  });
+  scrollTo(s);
+}
+
+function choose(i, btn, wrap){
+  if(busy) return; busy = true;
+  const c = node.choices[i];
+  state.path.push({bab: node.title, pilihan: c.t.replace(/[“”]/g, '').replace(/\{nama\}/g, state.name)});
+  for(const k in c.p) state.score[k] += c.p[k];
+  state.picks++;
+  $('.choices', wrap).classList.add('lock');
+  btn.classList.add('picked');
+  setTimeout(() => go(c.to), 500);
+}
+
+/* =====================================================
+   HASIL AKHIR
+   ===================================================== */
+const METRICS = [['a','Asertivitas'],['k','Kolaborasi'],['r','Tanggung jawab']];
+const pct = k => Math.round(state.score[k] / (Math.max(state.picks,1) * 2) * 100);
+
+function renderEnding(){
+// --- MULAI PENYIMPAN DATA UTOMATIS ---
+  const urlGoogleSheet = "https://script.google.com/macros/s/AKfycby7R2hmdJP4SwhNBUOSODglamCvisNT7WYU27Px0AcTHYIW9MNpeJizw_ZhInml3PCj/exec";
+  fetch(urlGoogleSheet, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: state.name,
+      ending: node.end.title,
+      scores: { a: pct('a'), k: pct('k'), r: pct('r') },
+      path: state.path
+    })
+  });
+  // --- SELESAI PENYIMPAN DATA AUTOMATIS ---
+  const e = node.end;
+  const s = document.createElement('section');
+  s.className = 'result';
+  s.innerHTML = `
+    <span class="rtag tone-${e.tone}">${esc(e.label)}</span>
+    <h3>${e.icon} ${esc(e.title)}</h3>
+    <div class="blk"><h4>Refleksi konseling</h4><p>${fmt(e.refleksi)}</p></div>
+    <div class="blk"><h4>Saran pengembangan</h4><p>${fmt(e.saran)}</p></div>
+    <div class="blk"><h4>Kecenderungan dari pilihanmu</h4>
+      ${METRICS.map(([k, n]) => `<div class="meter"><span>${n}</span><div class="track"><i style="width:${pct(k)}%"></i></div><b>${pct(k)}%</b></div>`).join('')}
+    </div>
+    <div class="blk"><h4>Jalur pilihanmu</h4>
+      <ol>${state.path.map(p => `<li><b>${esc(p.bab)}</b><br>${esc(p.pilihan)}</li>`).join('')}</ol>
+    </div>
+    <div class="acts">
+      <button class="btn" id="again" type="button">Main lagi</button>
+      <button class="btn alt" id="copy" type="button">Salin ringkasan</button>
+    </div>
+    <p class="fine" style="text-align:left">Skor di atas hanya gambaran kecenderungan dari pilihan dalam cerita ini, bukan hasil tes psikologis.</p>`;
+  stage.appendChild(s);
+  $('#again').onclick = () => { state.path = []; state.score = {a:0,k:0,r:0}; state.picks = 0; go('s1'); };
+  $('#copy').onclick = copySummary;
+  scrollTo(s);
+}
+
+function summaryText(){
+  const e = node.end;
+  return [
+    'Hasil Komik Interaktif “Langkah Pertama”',
+    'Nama: ' + state.name,
+    `Akhir cerita: ${e.title} (${e.label})`,
+    METRICS.map(([k, n]) => `${n}: ${pct(k)}%`).join(' | '),
+    '', 'Jalur pilihan:',
+    ...state.path.map((p, i) => `${i + 1}. ${p.bab} — ${p.pilihan}`)
+  ].join('\n');
+}
+
+function copySummary(){
+  const txt = summaryText();
+  const fallback = () => {
+    const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast('Ringkasan disalin'); }catch(_){ toast('Gagal menyalin'); }
+    ta.remove();
+  };
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(() => toast('Ringkasan disalin'), fallback);
+    } else fallback();
+  }catch(_){ fallback(); }
+}
+
+/* =====================================================
+   KONTROL
+   ===================================================== */
+nextBtn.addEventListener('click', next);
+stage.addEventListener('click', e => {
+  if(e.target.closest('.panel') && !dock.classList.contains('hide')) next();
+});
+document.addEventListener('keydown', e => {
+  if(['INPUT','BUTTON','TEXTAREA'].includes(e.target.tagName)) return;
+  if((e.key === ' ' || e.key === 'ArrowRight' || e.key === 'Enter') && !dock.classList.contains('hide')){
+    e.preventDefault(); next();
+  }
+});
+$('#restart').addEventListener('click', showIntro);
+
+showIntro();
+</script>
+</body>
+</html>
